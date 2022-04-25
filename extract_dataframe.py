@@ -47,7 +47,7 @@ class TweetDfExtractor:
         text = []
 	
         for t in range(len(tweets_list)):
-            text.append((tweets_data[t]['text']))
+            text.append((tweets_list[t]['text']))
         
 	return text 
        

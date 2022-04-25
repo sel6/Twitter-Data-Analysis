@@ -54,12 +54,20 @@ class TweetDfExtractor:
         return created_at
 
     def find_source(self)->list:
-        source = 
+        source = []
+        
+	for src in range(len(self.tweets_list)):
+            source.append((self.tweets_list[src]['source']))
 
         return source
 
     def find_screen_name(self)->list:
-        screen_name = 
+        screen_name = []
+        
+	for name in range(len(self.tweets_list)):
+            screen_name.append((self.tweets_list[name]['retweeted_status']['user']['screen_name']))
+        
+	return screen_name 
 
     def find_followers_count(self)->list:
         followers_count = 

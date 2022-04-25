@@ -93,7 +93,7 @@ class TweetDfExtractor:
         friends_count = []
 	
 	for i in range(len(self.tweets_list)):
-	    text.append((tweets_data[i]['user']['friends_count']))
+	    text.append((tweets_list[i]['user']['friends_count']))
 	
 	return friends_count
 							     
@@ -105,9 +105,14 @@ class TweetDfExtractor:
 
         return is_sensitive
 
+    #fuction to find favorite count
     def find_favourite_count(self)->list:
+	favoirte_count = []
+	for i in range(len(self.tweets_list)):
+    	    text.append((tweets_list[i]['retweeted_status']['favorite_count']))
+	
+	return favorite_count
         
-    
     def find_retweet_count(self)->list:
         retweet_count = 
 

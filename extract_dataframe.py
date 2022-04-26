@@ -44,29 +44,41 @@ class TweetDfExtractor:
         
         
     def find_full_text(self)->list:
-        text = []
-        for t in range(len(self.tweets_list)):
-            text.append((tweets_list[t]['text']))
+        org_txt = []
+        clean = []
+        for txt in range(len(self.tweets_list)):
+            org_txt.append((tweets_list[txt]['text']))
+            clean.append(re.sub("^RT.*:","",tweets_list[txt]['text']))
 
-        return text
+        return org_txt, clean
        
-    
-    def find_sentiments(self, text)->list:
-        
+    #functions that returns lists of polarity and subjectivity
+    def find_sentiments(self, text: list)->list:
+        polarity = []
+        self.subjectivity = []
+        for sentiment in range(len(text)):
+            self.subjectivity.append(TextBlob(items).sentiment.subjectivity)
+            polarity.append(TextBlob(items).sentiment.polarity)
+
         return polarity, self.subjectivity
 
+    #function that returns lists of created_at
     def find_created_time(self)->list:
+        created_at = []
+        for created in range(len(self.tweets_list)):
+            created_at.append(created['created_at'])
        
         return created_at
 
+    #function that returns the lists of sources
     def find_source(self)->list:
         source = []
-        
         for src in range(len(self.tweets_list)):
             source.append((self.tweets_list[src]['source']))
 
         return source
-
+    
+    #function that returns lists of screen_name/author name
     def find_screen_name(self)->list:
         screen_name = []
 
@@ -75,20 +87,23 @@ class TweetDfExtractor:
 
         return screen_name
 
-    
+    #function that returns lists of followers
     def find_followers_count(self)->list:
         followers_count = []
 
         for follow in range(len(self.tweets_list)):
             followers_count.append((self.tweets_list[follow]['user']['followers_count']))
 
-        return followers_count     
+        return followers_count
+
+    #function that returns number of friends
     def find_friends_count(self)->list:
         friends_count = []
 
         for count in range(len(self.tweets_list)):
             text.append((tweets_list[count]['user']['friends_count']))
 
+    
     def is_sensitive(self)->list:
         try:
             is_sensitive = [x['possibly_sensitive'] for x in self.tweets_list]
@@ -97,14 +112,16 @@ class TweetDfExtractor:
 
         return is_sensitive
 
+    #functions that returns likes in list
     def find_favourite_count(self)->list:
         favorite_count = []
 
-        for i in range(len(self.tweets_list)):
-            favorite.append((tweets_list[i]['retweeted_status']['favorite_count']))
+        for fav in range(len(self.tweets_list)):
+            favorite.append((self.tweets_list[fav]['retweeted_status']['favorite_count']))
             
         return favorite_count
-    
+
+    #function that returns tweet count
     def find_retweet_count(self)->list:
         retweet_count = 
 
@@ -165,5 +182,3 @@ if __name__ == "__main__":
     tweet_df = tweet.get_tweet_df() 
 
     # use all defined functions to generate a dataframe with the specified columns above
-
-    

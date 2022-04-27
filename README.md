@@ -1,6 +1,6 @@
 # Twitter-Data-Analysis
 
-### Tasks completed in 4/25/2022 - 4/26/2022
+### Tasks completed
 
 1. Fork repository to your github account
 2. Create a branch called “fix_bug” to fix the bugs in the fix_clean_tweets_dataframe.py and fix_extract_dataframe.py 

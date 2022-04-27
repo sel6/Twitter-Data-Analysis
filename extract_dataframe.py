@@ -158,11 +158,8 @@ class TweetDfExtractor:
         return mentions
     
     def find_location(self)->list:
-        try:
-            location = self.tweets_list['user']['location']
-        except TypeError:
-            location = ''
-        
+        #returns list of location
+        location = [x.get('retweeted_status', {}).get('user', {}).get('location', None) for x in self.tweets_list]
         return location
 
     

@@ -10,5 +10,6 @@
 6. Create a new branch called `make_unittest` for creating a new unit test for extract_dataframe.py code.
 7. After completing the unit test writing, merge  “make_unittest”  to main branch
 8. In all cases when you merge, make sure you first do Pull Request, review, then accept the merge.
+9. Data exploration and pre-processing: the codes you fixed at step 1 are the modules you will extend to perform data reading, pre-processing and data exploration and visualisations.
+10. Topic modelling and sentiment analysis: write a code using scikit-learn, Gensim, or other packages and APIs to model the topics discussed in the tweets and their sentiments. You may use word clouds, k-mean clustering, etc. as a simple model for topic modelling.
 
-Have Fun and Cheers!

@@ -33,7 +33,7 @@ class TweetDfExtractor:
 
         self.tweets_list = tweets_list
 
-    # function that returns the status
+    # function that returns the status count
     def find_statuses_count(self) -> list:
         statuses_count = []
         for count in (self.tweets_list):
@@ -82,7 +82,7 @@ class TweetDfExtractor:
 
         return created_at
 
-    # function that returns the lists of sources
+    # function that returns the lists of sources in hyperlink format
     def find_source(self) -> list:
         source = []
         for src in range(len(self.tweets_list)):
@@ -106,7 +106,7 @@ class TweetDfExtractor:
 
         return followers_count
 
-    # function that returns number of friends
+    # function that returns lists of number of friends
     def find_friends_count(self) -> list:
         friends_count = []
         for frnd in self.tweets_list:
@@ -114,6 +114,7 @@ class TweetDfExtractor:
 
         return friends_count
 
+    # function that returns sensitivity list in boolean format
     def is_sensitive(self) -> list:
         is_sensitive = []
         for sensitive in self.tweets_list:
@@ -122,7 +123,7 @@ class TweetDfExtractor:
 
         return is_sensitive
 
-    # functions that returns likes in list
+    # functions that returns list of likes
     def find_favourite_count(self) -> list:
         favorite_count = []
         for fav in (self.tweets_list):
@@ -130,7 +131,7 @@ class TweetDfExtractor:
 
         return favorite_count
 
-    # function that returns the language
+    # function that returns the list language
     def find_lang(self) -> list:
         lang = []
         for lg in range(len(self.tweets_list)):
@@ -138,7 +139,7 @@ class TweetDfExtractor:
 
         return lang
 
-    # function that returns tweet count
+    # function that returns list of tweet count
     def find_retweet_count(self) -> list:
         retweet_count = []
         for r_twt in range(len(self.tweets_list)):
@@ -146,6 +147,7 @@ class TweetDfExtractor:
 
         return retweet_count
 
+    # function that returns list of #hashtags in tweets
     def find_hashtags(self) -> list:
         hashtags = []
         for h in range(len(self.tweets_list)):

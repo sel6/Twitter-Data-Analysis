@@ -1,70 +1,76 @@
 import pandas as pd
-
-
 class Clean_Tweets:
     """
-    A class dedicated to return a clean data frame
+    The PEP8 Standard AMAZING!!!
     """
-
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df:pd.DataFrame):
         self.df = df
-        print('Automation in Action...!!!')
-
-    def drop_unwanted_column(self, df: pd.DataFrame) -> pd.DataFrame:
+        print('Data cleaning in Action...!!!')
+        
+    def drop_unwanted_column(self, df:pd.DataFrame)->pd.DataFrame:
         """
-        Remove rows that has column name, occured at data collection stage
+        remove rows that has column names. This error originated from
+        the data collection stage.  
         """
-        unwanted_rows = self.df[self.df['retweet_count']
-                                == 'retweet_count'].index
-        self.df.drop(unwanted_rows, inplace=True)
-        self.df = self.df[self.df['polarity'] != 'polarity']
+        unwanted_rows = df[df['retweet_count'] == 'retweet_count' ].index
+        df.drop(unwanted_rows , inplace=True)
+        df = df[df['polarity'] != 'polarity']
 
-        return self.df
-
-    def drop_duplicate(self, df: pd.DataFrame) -> pd.DataFrame:
+        print('Unwanted_columns successfully removed')
+        
+        return df
+    def drop_duplicate(self, df:pd.DataFrame)->pd.DataFrame:
         """
-        drop duplicate rows
+        drop duplicate rows from selected columns where duplicates are not expected.
         """
-        self.df = self.df.drop_duplicates().drop_duplicates(subset='original_text')
+        df.drop_duplicates(['screen_name','original_text','created_at'],keep="first")
 
-        return self.df
-
-    def convert_to_datetime(self, df: pd.DataFrame) -> pd.DataFrame:
+        print('Duplicate rows successfully removed')
+        
+        return df
+    def convert_to_datetime(self, df:pd.DataFrame)->pd.DataFrame:
         """
         convert column to datetime
         """
-        self.df['created_at'] = pd.to_datetime(
-            self.df['created_at'], errors='coerce')
+        df['created_at'] = pd.to_datetime(df['created_at'])
+        
+        df = df[df['created_at'] >= '2020-12-31' ]
 
-        self.df = self.df[self.df['created_at'] >= '2020-12-31']
-
-        return self.df
-
-    def convert_to_numbers(self, df: pd.DataFrame) -> pd.DataFrame:
+        print('Strings successfully converted to datetime object')
+        
+        return df
+    
+    def convert_to_numbers(self, df:pd.DataFrame)->pd.DataFrame:
         """
-        columns: polarity, retweet_count, favorite_count represented numerical
+        convert columns like polarity, subjectivity, retweet_count
+        favorite_count etc to numbers
         """
-        self.df['polarity'] = pd.to_numeric(
-            self.df['polarity'], errors='coerce')
-        self.df['retweet_count'] = pd.to_numeric(
-            self.df['retweet_count'], errors='coerce')
-        self.df['favorite_count'] = pd.to_numeric(
-            self.df['favorite_count'], errors='coerce')
-
-        return self.df
-
-    def remove_non_english_tweets(self, df: pd.DataFrame) -> pd.DataFrame:
+        
+        df['polarity'] = pd.to_numeric(df['polarity'])
+        df['favourites_count'] = pd.to_numeric(df['favourites_count'])
+        df['subjectivity'] = pd.to_numeric(df['subjectivity'])
+        df['retweet_count'] = pd.to_numeric(df['retweet_count'])
+        df['friends_count'] = pd.to_numeric(df['friends_count'])
+        df['followers_count'] = pd.to_numeric(df['followers_count'])
+       
+        print('Strings successfully converted to numeric object')
+        
+        return df
+    
+    def remove_non_english_tweets(self, df:pd.DataFrame)->pd.DataFrame:
         """
         remove non english tweets from lang
         """
-        self.df = self.df.query("lang == 'eng' ")
+        
+        df = df[df['language']=='en']
 
-        return self.df
-
-
-if __name__ == 'main':
-    data_frame = pd.read_csv('/data/processed_tweet_data.csv')
-    cleaner = Clean_Tweets(data_frame)
+        print('Non-English languages succesfully removed')
+        
+        return df
+    
+if __name__ == '__main__':
+    data_frame = pd.read_csv('./data/processed_tweet_data.csv')
+    cleaner = Clean_Tweets(df=data_frame)
 
     data_frame = cleaner.drop_duplicate(data_frame)
     data_frame = cleaner.remove_non_english_tweets(data_frame)
@@ -72,5 +78,5 @@ if __name__ == 'main':
     data_frame = cleaner.convert_to_numbers(data_frame)
     data_frame = cleaner.drop_unwanted_column(data_frame)
 
-    data_frame.to_csv('/data/clean_processed_tweet_data.csv')
-    print('You have now a clean tweet data frame.')
+    data_frame.to_csv('./data/clean_processed_tweet_data.csv')
+    print('Done cleaning and saving!!!')

@@ -51,26 +51,18 @@ class TweetDfExtractor:
         return org_txt, clean
 
     # functions that returns lists of polarity and subjectivity
-    def find_sentiments(self, text: list) -> list:
-        text = []
-        extended_tweet = []
-        full_text = []
-        for txt in self.tweets_list:
-            lis = txt.get('retweeted_status', {})
-            text.append(lis)
-        for ext_txt in text:
-            lis2 = ext_txt.get('extended_tweet', {})
-            extended_tweet.append(lis2)
-        for full in extended_tweet:
-            lis3 = full.get('full_text', '')
-            full_text.append(lis3)
-        sentimentedText = [TextBlob(full) for full in full_text]
+    def find_sentiments(self, text) -> list:
         polarity = []
         subjectivity = []
 
-        for feels in sentimentedText:
-            polarity.append(feels.sentiment.polarity)
-            subjectivity.append(feels.sentiment.subjectivity)
+        for each in text:
+            if (each):
+                result = TextBlob(str(each)).sentiment
+                polarity.append(result.polarity)
+                subjectivity.append(result.subjectivity)
+            else:
+                polarity.append("")
+                subjectivity.append("")
 
         return polarity, subjectivity
 

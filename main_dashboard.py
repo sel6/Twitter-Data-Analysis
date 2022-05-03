@@ -1,42 +1,29 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import numpy as np
 import altair as alt
-from wordcloud import WordCloud
 import plotly.express as px
-from add_data import db_execute_fetch
+import re
+from wordcloud import WordCloud, STOPWORDS
+import plotly.express as px
+from utils import (remove_mentions,
+remove_hashtags,
+remove_unfinished_letters,
+remove_RT)
 
-st.set_page_config(page_title="Day 5", layout="wide")
+st.title(' Dashboard ')
 
-def loadData():
-    query = "select * from TweetInformation"
-    df = db_execute_fetch(query, dbName="tweets", rdf=True)
-    return df
+DATA_URL = ('clean_processed_tweet_data.csv')
 
-def selectHashTag():
-    df = loadData()
-    hashTags = st.multiselect("choose combaniation of hashtags", list(df['hashtags'].unique()))
-    if hashTags:
-        df = df[np.isin(df, hashTags).any(axis=1)]
-        st.write(df)
+def loadData(nrows):
+    data = pd.read_csv(DATA_URL, nrows=nrows)
+    return data
 
-def selectLocAndAuth():
-    df = loadData()
-    location = st.multiselect("choose Location of tweets", list(df['place_coordinate'].unique()))
-    lang = st.multiselect("choose Language of tweets", list(df['language'].unique()))
 
-    if location and not lang:
-        df = df[np.isin(df, location).any(axis=1)]
-        st.write(df)
-    elif lang and not location:
-        df = df[np.isin(df, lang).any(axis=1)]
-        st.write(df)
-    elif lang and location:
-        location.extend(lang)
-        df = df[np.isin(df, location).any(axis=1)]
-        st.write(df)
-    else:
-        st.write(df)
+data_load_state = st.text('Loading data...')
+data = loadData(10000)
+
+data_load_state.text('Loading data...success!')
 
 def barChart(data, title, X, Y):
     title = title.title()
@@ -45,21 +32,33 @@ def barChart(data, title, X, Y):
                 order='ascending')), y=f"{Y}:Q"))
     st.altair_chart(msgChart, use_container_width=True)
 
-def wordCloud():
-    df = loadData()
-    cleanText = ''
-    for text in df['clean_text']:
-        tokens = str(text).lower().split()
 
-        cleanText += " ".join(tokens) + " "
 
-    wc = WordCloud(width=650, height=450, background_color='white', min_font_size=5).generate(cleanText)
-    st.title("Tweet Text Word Cloud")
-    st.image(wc.to_array())
+
+
+def polarity_pie():
+    def classify_polarity(polarity):
+        polarity = float(polarity)
+        # polarity = -1 if type(polarity)==str else float(polarity)
+        if polarity < 0:
+            return "negative"
+        elif polarity > 0:
+            return "positive"
+        else:
+            return "neutral"
+    data = loadData(1000)
+    data = data[data['polarity']!="ko"]
+    # data = data[data['polarity']!="ko"]
+    data["polarity_label"] = data['polarity'].apply(lambda x: classify_polarity(x))
+    data.dropna(subset=["polarity"],inplace=True)
+    fig = px.pie(data,names="polarity_label",title ="Polarity count", width=500, height=350)
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig)
+
 
 def stBarChart():
-    df = loadData()
-    dfCount = pd.DataFrame({'Tweet_count': df.groupby(['original_author'])['clean_text'].count()}).reset_index()
+    df = loadData(1000)
+    dfCount = pd.DataFrame({'Tweet_count': df.groupby(['original_author'])['original_text'].count()}).reset_index()
     dfCount["original_author"] = dfCount["original_author"].astype(str)
     dfCount = dfCount.sort_values("Tweet_count", ascending=False)
 
@@ -67,31 +66,56 @@ def stBarChart():
     title = f"Top {num} Ranking By Number of tweets"
     barChart(dfCount.head(num), title, "original_author", "Tweet_count")
 
+def wordCloud():
+    df = loadData(1000)
+    cleanText = ''
+    df["cleaned_text"] = df["original_text"].apply(lambda x: re.split('https:\/\/.*', str(x))[0])
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: x.encode('ascii', 'ignore').decode('ascii'))
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: x.replace('\n',''))
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: remove_hashtags(x) )
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: remove_mentions(x) )
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: remove_unfinished_letters(x))
+    df["cleaned_text"] = df["cleaned_text"].apply(lambda x: remove_RT(x))
+    for text in df['cleaned_text']:
+        tokens = str(text).lower().split()
+
+        cleanText += " ".join(tokens) + " "
+    weird_words =  ['s', 'kur', 'u', 't', 'rt', 'ti', 'o', 'd', 'vk', 'to', 'co',
+                    'dqlw', 'z', 'nd', 'm', 'de', 'du', 'le', 'und', 'die', 'der', 'will', 'nicht']
+    stopwords = STOPWORDS.union(weird_words)
+    wc = WordCloud(stopwords=stopwords, width=650, height=450, background_color='white', min_font_size=5).generate(cleanText)
+    st.title("Tweet Text Word Cloud")
+    st.image(wc.to_array())
+
+
 
 def langPie():
-    df = loadData()
-    dfLangCount = pd.DataFrame({'Tweet_count': df.groupby(['language'])['clean_text'].count()}).reset_index()
-    dfLangCount["language"] = dfLangCount["language"].astype(str)
+    df = data
+    dfLangCount = pd.DataFrame({'Tweet_count': df.groupby(['lang'])['original_text'].count()}).reset_index()
+    dfLangCount["lang"] = dfLangCount["lang"].astype(str)
     dfLangCount = dfLangCount.sort_values("Tweet_count", ascending=False)
     dfLangCount.loc[dfLangCount['Tweet_count'] < 10, 'lang'] = 'Other languages'
     st.title(" Tweets Language pie chart")
-    fig = px.pie(dfLangCount, values='Tweet_count', names='language', width=500, height=350)
+    fig = px.pie(dfLangCount, values='Tweet_count', names='lang', width=500, height=350)
     fig.update_traces(textposition='inside', textinfo='percent+label')
 
-    colB1, colB2 = st.beta_columns([2.5, 1])
+    colB1, colB2 = st.columns([2.5, 1])
 
     with colB1:
         st.plotly_chart(fig)
     with colB2:
         st.write(dfLangCount)
 
+st.subheader('Raw data')
+st.write(data)
 
-st.title("Data Display")
-selectHashTag()
-st.markdown("<p style='padding:10px; background-color:#000000;color:#00ECB9;font-size:16px;border-radius:10px;'>Section Break</p>", unsafe_allow_html=True)
-selectLocAndAuth()
+st.title("Anlyzed Data Display")
+# selectHashTag()
+st.markdown("<p style='padding:10px; background-color:#ffffffff;color:#00ECB9;font-size:16px;border-radius:10px;'>Section Break</p>", unsafe_allow_html=True)
+# selectLocAndAuth()
 st.title("Data Visualizations")
 wordCloud()
-with st.beta_expander("Show More Graphs"):
+with st.expander("Show More Graphs"):
     stBarChart()
     langPie()
+    polarity_pie()

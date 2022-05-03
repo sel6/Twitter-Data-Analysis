@@ -4,27 +4,12 @@ import mysql.connector as mysql
 from mysql.connector import Error
 
 def DBConnect(dbName=None):
-    """
-
-    Parameters
-    ----------
-    dbName :
-        Default value = None)
-
-    Returns
-    -------
-
-    """
-    conn = mysql.connect(host='localhost', user='root', password=os.getenv('mysqlPass'),
+  
+    conn = mysql.connect(host='localhost', user='root', password="Selam@0102.",
                          database=dbName, buffered=True)
     cur = conn.cursor()
     return conn, cur
 
-def emojiDB(dbName: str) -> None:
-    conn, cur = DBConnect(dbName)
-    dbQuery = f"ALTER DATABASE {dbName} CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;"
-    cur.execute(dbQuery)
-    conn.commit()
 
 def createDB(dbName: str) -> None:
     """
@@ -48,23 +33,9 @@ def createDB(dbName: str) -> None:
     cur.close()
 
 def createTables(dbName: str) -> None:
-    """
 
-    Parameters
-    ----------
-    dbName :
-        str:
-    dbName :
-        str:
-    dbName:str :
-
-
-    Returns
-    -------
-
-    """
     conn, cur = DBConnect(dbName)
-    sqlFile = 'day5_schema.sql'
+    sqlFile = 'schema.sql'
     fd = open(sqlFile, 'r')
     readSqlFile = fd.read()
     fd.close()
@@ -98,7 +69,7 @@ def preprocess_df(df: pd.DataFrame) -> pd.DataFrame:
     -------
 
     """
-    cols_2_drop = ['Unnamed: 0', 'timestamp', 'sentiment', 'possibly_sensitive', 'original_text']
+    cols_2_drop = ['Unnamed: 0', 'timestamp', 'sentiment', 'possibly_sensitive', 'cleaned_text']
     try:
         df = df.drop(columns=cols_2_drop, axis=1)
         df = df.fillna(0)
@@ -108,77 +79,33 @@ def preprocess_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def insert_to_tweet_table(dbName: str, df: pd.DataFrame, table_name: str) -> None:
-    """
-
-    Parameters
-    ----------
-    dbName :
-        str:
-    df :
-        pd.DataFrame:
-    table_name :
-        str:
-    dbName :
-        str:
-    df :
-        pd.DataFrame:
-    table_name :
-        str:
-    dbName:str :
-
-    df:pd.DataFrame :
-
-    table_name:str :
-
-
-    Returns
-    -------
-
-    """
+def insert_tweet(dbName: str, df: pd.DataFrame, table_name: str) -> None:
+   
     conn, cur = DBConnect(dbName)
 
     df = preprocess_df(df)
 
     for _, row in df.iterrows():
-        sqlQuery = f"""INSERT INTO {table_name} (created_at, source, clean_text, polarity, subjectivity, language,
-                    favorite_count, retweet_count, original_author, screen_count, followers_count, friends_count,
-                    hashtags, user_mentions, place, place_coordinate)
+        sqlQuery = f"""INSERT INTO {table_name} (created_at, source, clean_text, polarity, subjectivity, lang,
+                    favorite_count, retweet_count, original_author, followers_count, friends_count,
+                    hashtags, user_mentions, place)
              VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
         data = (row[0], row[1], row[2], row[3], (row[4]), (row[5]), row[6], row[7], row[8], row[9], row[10], row[11],
-                row[12], row[13], row[14], row[15])
+                row[12], row[13])
 
         try:
             # Execute the SQL command
             cur.execute(sqlQuery, data)
             # Commit your changes in the database
             conn.commit()
-            print("Data Inserted Successfully")
+            print("Tweets inserted")
         except Exception as e:
             conn.rollback()
             print("Error: ", e)
     return
 
 def db_execute_fetch(*args, many=False, tablename='', rdf=True, **kwargs) -> pd.DataFrame:
-    """
-
-    Parameters
-    ----------
-    *args :
-
-    many :
-         (Default value = False)
-    tablename :
-         (Default value = '')
-    rdf :
-         (Default value = True)
-    **kwargs :
-
-
-    Returns
-    -------
-
-    """
+   
     connection, cursor1 = DBConnect(**kwargs)
     if many:
         cursor1.executemany(*args)
@@ -208,9 +135,8 @@ def db_execute_fetch(*args, many=False, tablename='', rdf=True, **kwargs) -> pd.
 
 if __name__ == "__main__":
     createDB(dbName='tweets')
-    emojiDB(dbName='tweets')
     createTables(dbName='tweets')
 
-    df = pd.read_csv('fintech.csv')
+    df = pd.read_csv('clean_processed_tweet.csv')
 
-    insert_to_tweet_table(dbName='tweets', df=df, table_name='TweetInformation')
+    insert_tweet(dbName='tweets', df=df, table_name='TweetInformation')
